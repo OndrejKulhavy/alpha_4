@@ -2,7 +2,6 @@ import socket
 import json
 import time
 
-from src.configuration import config
 from src.configuration.config import read_config
 
 
