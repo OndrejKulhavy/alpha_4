@@ -1,46 +1,45 @@
-import socket
 import json
+import socket
+import threading
 import time
 
-from src.configuration.config import read_config
+from src.configuration.config import Config
 
 
-class UDP:
-    def __init__(self):
-        self.config = read_config()
+class UDP():
+    def __init__(self, config: Config):
+        self.config = config
+        self.thread = threading.Thread(target=self.run)
+        self.thread.start()
+        self.thread.join()
 
-    def send_udp_query(self):
-        query = {"command": "hello", "peer_id": self.config.peer.peer_id}
-        query_json = json.dumps(query)
-        encoded_query_json = query_json.encode('utf-8')
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            s.sendto(encoded_query_json, (self.config.udp.broadcast_adress, self.config.udp.broadcast_port))
+    def run(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        init_message = json.dumps({"command": "hello", "peer_id": self.config.other.peer_id}).encode("utf-8")
+        reply_message = json.dumps({"status": "ok", "peer_id": self.config.other.peer_id}).encode("utf-8")
 
-    def handle_udp_response(self, response_json):
-        try:
-            response = json.loads(response_json)
-            if response.get("status") == "ok" and response.get("peer_id") != self.config.peer.peer_id:
-                print(f"Received response from peer: {response['peer_id']}")
-                # Extract IP address from the response and establish TCP connection if needed
-                # Implement your TCP connection logic here
-        except json.JSONDecodeError:
-            print("Error decoding UDP response JSON.")
+        print("UDP thread started")
 
-    def run_discovery(self):
         while True:
-            self.send_udp_query()
+            print("Sending discovery message...")
+            sock.sendto(
+                init_message,
+                (self.config.udp.address, self.config.udp.port),
+            )
 
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.bind(('', self.config.udp.broadcast_port))
-                s.settimeout(self.config.udp.broadcast_interval)
-
+            print("Receiving replies for 5 seconds...")
+            start_time = time.time()
+            while time.time() - start_time < 5:
                 try:
-                    while True:
-                        data, addr = s.recvfrom(1024)
-                        response_json = data.decode('utf-8')
-                        self.handle_udp_response(response_json)
+                    data, addr = sock.recvfrom(1024)
+                    response = json.loads(data.decode("utf-8"))
+                    print(f"Received response from {addr}: {response}")
+                    if response["command"] == "hello":
+                        print("Sending reply...")
+                        sock.sendto(
+                            reply_message,
+                            (self.config.udp.address, self.config.udp.port),
+                        )
                 except socket.timeout:
                     pass
-
-            time.sleep(self.config.udp.broadcast_interval)
