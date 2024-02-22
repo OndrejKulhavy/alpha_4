@@ -5,7 +5,6 @@ UDPConfig = namedtuple("UDPConfig", ["broadcast_port", "broadcast_interval", "br
 TCPConfig = namedtuple("TCPConfig", ["listen_port", "timeout"])
 HTTPConfig = namedtuple("HTTPConfig", ["api_port"])
 PeerConfig = namedtuple("PeerConfig", ["peer_id", "max_messages"])
-
 ConfigTemplate = namedtuple("Config", ["udp", "tcp", "http", "peer"])
 
 
