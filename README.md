@@ -15,7 +15,7 @@ Peers use three types of communication:
 After starting, a peer initiates periodic peer discovery using UDP. It broadcasts a UDP packet on port 9876 every five seconds and waits for responses. Communication is JSON-based, with each line representing a query or response. Lines end with either CR-LF or just LF.
 
 Example:
-```json
+```bash
 Q: {"command":"hello","peer_id":"molic-peer1"}
 A: {"status":"ok","peer_id":"molic-peer1"}
 A: {"status":"ok","peer_id":"molic-peer2"}
@@ -26,7 +26,7 @@ A: {"status":"ok","peer_id":"molic-peer3"}
 Upon finding a new peer, a permanent TCP connection is established on port 9876. Communication follows a JSON-based protocol similar to UDP discovery. After a handshake, peers exchange their chat message history.
 
 Example:
-```json
+```bash
 Q: {"command":"hello","peer_id":"molic-peer1"}
 A: {"status":"ok", "messages": {"1707243010934": {"peer_id":"molic-peer3", "message":"pokus"}, ...}}
 ```

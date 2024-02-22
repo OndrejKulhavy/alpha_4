@@ -1,24 +1,22 @@
 import socket
 import json
 import time
+
+from src.configuration import config
 from src.configuration.config import read_config
 
 
 class UDP:
-    def __init__(self, peer_id):
-        config = read_config()
-        self.peer_id = config
-        self.peer_id = peer_id
-        self.udp_port = 9876
-        self.udp_broadcast_address = '<broadcast>'
-        self.discovery_interval = 5
+    def __init__(self):
+        self.config = read_config().udp
 
     def send_udp_query(self):
-        query = {"command": "hello", "peer_id": self.peer_id}
+        query = {"command": "hello", "peer_id": self.config.peer_id}
         query_json = json.dumps(query)
+        encoded_query_json = query_json.encode('utf-8')
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            s.sendto(query_json.encode('utf-8'), (self.udp_broadcast_address, self.udp_port))
+            s.sendto(encoded_query_json, (self.config.udp.broadcast_address, self.config.udp.port))
 
     def handle_udp_response(self, response_json):
         try:
