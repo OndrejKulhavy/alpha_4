@@ -5,7 +5,8 @@ from src.udp.udp import UDP
 
 def main():
     udp = UDP()
+    udp.run_discovery()
 
 
-if __name__ == "__name__":
+if __name__ == "__main__":
     main()

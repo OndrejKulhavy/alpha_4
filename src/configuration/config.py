@@ -1,12 +1,12 @@
 from collections import namedtuple
 import configparser
 
-UDPConfig = namedtuple("UDPConfig", ["broadcast_port", "broadcast_interval"])
+UDPConfig = namedtuple("UDPConfig", ["broadcast_port", "broadcast_interval", "broadcast_adress"])
 TCPConfig = namedtuple("TCPConfig", ["listen_port", "timeout"])
 HTTPConfig = namedtuple("HTTPConfig", ["api_port"])
-OtherConfig = namedtuple("OtherConfig", ["peer_id", "max_messages"])
+PeerConfig = namedtuple("PeerConfig", ["peer_id", "max_messages"])
 
-ConfigTemplate = namedtuple("Config", ["udp", "tcp", "http", "other"])
+ConfigTemplate = namedtuple("Config", ["udp", "tcp", "http", "peer"])
 
 
 def read_config():
@@ -15,18 +15,20 @@ def read_config():
 
     udp_broadcast_port = config.getint("UDP", "broadcast_port")
     udp_broadcast_interval = config.getint("UDP", "broadcast_interval")
+    udp_broadcast_address = config.get("UDP", "broadcast_address")
 
     tcp_listen_port = config.getint("TCP", "listen_port")
     tcp_timeout = config.getint("TCP", "timeout")
 
-    http_api_port = config.getint("HTTP", "api_port")
+    http_api_port = config.get("HTTP", "api_port")
 
     peer_id = config.get("Peer", "peer_id")
     max_messages = config.getint("Peer", "max_messages")
 
     udp_config = UDPConfig(
         broadcast_port=udp_broadcast_port,
-        broadcast_interval=udp_broadcast_interval
+        broadcast_interval=udp_broadcast_interval,
+        broadcast_adress=udp_broadcast_address,
     )
     tcp_config = TCPConfig(
         listen_port=tcp_listen_port,
@@ -35,7 +37,7 @@ def read_config():
     http_config = HTTPConfig(
         api_port=http_api_port
     )
-    other_config = OtherConfig(
+    peer_config = PeerConfig(
         peer_id=peer_id,
         max_messages=max_messages
     )
@@ -44,5 +46,5 @@ def read_config():
         udp=udp_config,
         tcp=tcp_config,
         http=http_config,
-        other=other_config
+        peer=peer_config
     )

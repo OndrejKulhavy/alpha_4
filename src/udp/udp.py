@@ -7,20 +7,20 @@ from src.configuration.config import read_config
 
 class UDP:
     def __init__(self):
-        self.config = read_config().udp
+        self.config = read_config()
 
     def send_udp_query(self):
-        query = {"command": "hello", "peer_id": self.config.peer_id}
+        query = {"command": "hello", "peer_id": self.config.peer.peer_id}
         query_json = json.dumps(query)
         encoded_query_json = query_json.encode('utf-8')
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            s.sendto(encoded_query_json, (self.config.udp.broadcast_address, self.config.udp.port))
+            s.sendto(encoded_query_json, (self.config.udp.broadcast_adress, self.config.udp.broadcast_port))
 
     def handle_udp_response(self, response_json):
         try:
             response = json.loads(response_json)
-            if response.get("status") == "ok" and response.get("peer_id") != self.peer_id:
+            if response.get("status") == "ok" and response.get("peer_id") != self.config.peer.peer_id:
                 print(f"Received response from peer: {response['peer_id']}")
                 # Extract IP address from the response and establish TCP connection if needed
                 # Implement your TCP connection logic here
@@ -32,8 +32,8 @@ class UDP:
             self.send_udp_query()
 
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                s.bind(('', self.udp_port))
-                s.settimeout(self.discovery_interval)
+                s.bind(('', self.config.udp.broadcast_port))
+                s.settimeout(self.config.udp.broadcast_interval)
 
                 try:
                     while True:
@@ -43,4 +43,4 @@ class UDP:
                 except socket.timeout:
                     pass
 
-            time.sleep(self.discovery_interval)
+            time.sleep(self.config.udp.broadcast_interval)
