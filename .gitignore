@@ -1,0 +1,25 @@
+# PyCharm IDE files
+.idea/*
+*.iml
+.idea_modules/
+
+# Virtual environment
+venv/
+virtualenv/
+
+# Build and test artifacts
+*.egg-info/
+
+# Compiled Python files
+*.pyc
+
+# Temporary files
+__pycache__/
+
+# Local development settings
+*.env
+# IDE logs
+*.log
+
+# IDE project history
+.idea_history/
