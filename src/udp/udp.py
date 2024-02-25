@@ -26,6 +26,8 @@ class UDP:
         print(f"Received response from {addr}: {response}")
         if response.get("command") == "hello":
             self.send_reply(sock)
+
+        if response.get("status") == "ok":
             peer = Peer(id=data.get("peer_id"), ip_address=addr[0])
             self.peers.add(peer)
             print(peer)
