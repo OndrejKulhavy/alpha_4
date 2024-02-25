@@ -23,7 +23,6 @@ class UDP:
 
     def handle_response(self, sock, data, addr):
         response = json.loads(data.decode("utf-8"))
-        print(f"Received response from {addr}: {response}")
         if response.get("command") == "hello":
             self.send_reply(sock)
 
@@ -32,6 +31,7 @@ class UDP:
             peer = Peer(id=response.get("peer_id"), ip_address=addr[0])
             self.peers.add(peer)
             print(peer)
+            print(self.peers.get_all())
 
     def send_reply(self, sock):
         reply_message = json.dumps({"status": "ok", "peer_id": self.config.other_settings.peer_id}).encode("utf-8")
