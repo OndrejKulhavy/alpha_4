@@ -29,7 +29,7 @@ class UDP:
 
         if response.get("status") == "ok":
             print(response)
-            peer = Peer(id=data.get("peer_id"), ip_address=addr[0])
+            peer = Peer(id=response.get("peer_id"), ip_address=addr[0])
             self.peers.add(peer)
             print(peer)
 
