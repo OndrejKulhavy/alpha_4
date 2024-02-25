@@ -16,6 +16,7 @@ class UDP:
         init_message = json.dumps({"command": "hello", "peer_id": self.config.other_settings.peer_id}).encode("utf-8")
         sock.sendto(init_message, (self.config.udp_settings.address, self.config.udp_settings.port))
         print("Sending discovery message...")
+        print("To address: ", self.config.udp_settings.address + ":" + str(self.config.udp_settings.port))
 
     def handle_response(self, sock, data, addr):
         response = json.loads(data.decode("utf-8"))
