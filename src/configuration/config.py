@@ -1,92 +1,94 @@
-import configparser
-from collections import namedtuple
-
 from src.configuration.sections import UDPConfig, TCPConfig, HTTPConfig, OtherConfig
+import configparser
 
 
 class Config:
     """
-    Represents a configuration object that loads and manages configuration data from a INI file.
+    Reads and manages configuration settings from a file.
 
     Attributes:
-        file_name (str): The path to the configuration file.
+        config_file_path (str): The path to the configuration file.
         config (configparser.ConfigParser): The parsed configuration data.
-        udp (UDPConfig): The parsed configuration data for the UDP section.
+        udp_settings (UDPConfig): The UDP-specific settings.
+        tcp_settings (TCPConfig): The TCP-specific settings.
+        http_settings (HTTPConfig): The HTTP-specific settings.
+        other_settings (OtherConfig): The other configuration settings.
+
+    Raises:
+        configparser.Error: If there is an error parsing the configuration file.
+        FileNotFoundError: If the configuration file is not found.
+        ValueError: If there is an error converting values to the correct types.
     """
 
-    SECTIONS = ["UDP", "TCP", "HTTP", "OTHER"]
-
-    def __init__(self, file_name: str = "config.ini"):
+    def __init__(self, config_file_path: str):
         """
-        Initializes a Config object.
+        Initializes the Config object.
 
         Args:
-            file_name (str, optional): The path to the configuration file. Defaults to "config.ini".
+            config_file_path (str): The path to the configuration file.
+        """
+
+        self.config_file_path = config_file_path
+        self.config = configparser.ConfigParser()
+        self.load_settings()
+
+    def load_settings(self):
+        """
+        Reads and parses the configuration file.
 
         Raises:
-            ValueError: If file_name is not provided.
-            FileNotFoundError: If the specified configuration file is not found.
-            configparser.MissingSectionHeaderError: If a required section is missing in the configuration file.
+            configparser.Error: If there is an error parsing the configuration file.
+            FileNotFoundError: If the configuration file is not found.
+            ValueError: If there is an error converting values to the correct types.
         """
-        if not file_name:
-            raise ValueError("File name is required")
-
-        self.file_name = file_name
-        self.template = namedtuple("Config", self.SECTIONS)
 
         try:
-            self.config = self.load()
-        except FileNotFoundError as e:
-            raise FileNotFoundError(
-                f"Configuration file not found: {file_name}!"
-                f"Try to create a new one based on instructions in documentation"
-            )
+            self.config.read(self.config_file_path)
 
-        self.udp = self.__load_udp()
-        self.tcp = self.__load_tcp()
-        self.http = self.__load_http()
-        self.other = self.__load_other()
+            # Load UDP settings
+            udp_config_values = {
+                'port': int(self.config["UDP"]["port"]),
+                'interval': int(self.config["UDP"]["interval"]),
+                'address': self.config["UDP"]["address"]
+            }
+            self.udp_settings = UDPConfig(**udp_config_values)
 
-    def load(self) -> configparser.ConfigParser:
+            # Load TCP settings
+            tcp_config_values = {
+                'port': int(self.config["TCP"]["port"]),
+                'timeout': int(self.config["TCP"]["timeout"])
+            }
+            self.tcp_settings = TCPConfig(**tcp_config_values)
+
+            # Load HTTP settings
+            http_config_values = {
+                'api_port': int(self.config["HTTP"]["port"])
+            }
+            self.http_settings = HTTPConfig(**http_config_values)
+
+            # Load other settings
+            other_config_values = {
+                'peer_id': self.config["OTHER"]["peer_id"],
+                'max_messages': int(self.config["OTHER"]["max_messages"])
+            }
+            self.other_settings = OtherConfig(**other_config_values)
+
+        except (configparser.Error, FileNotFoundError, ValueError) as e:
+            print(f"Error loading settings: {e}")
+            # Handle error gracefully (e.g., create default settings)
+
+    def save_settings(self):
         """
-        Loads the configuration data from the specified file.
-
-        Returns:
-            configparser.ConfigParser: The parsed configuration data.
+        Saves the configuration settings to the file.
         """
-        config = configparser.ConfigParser()
-        config.read(self.file_name)
-        return config
 
-    def __get_section(self, section_name: str, config_class):
+        with open(self.config_file_path, "w") as f:
+            self.config.write(f)
+
+    def update_setting(self, section: str, key: str, value):
         """
-        Loads a configuration section from the parsed data.
-
-        Args:
-            section_name (str): The name of the section to load.
-            config_class: The configuration class to use for loading the section.
-
-        Returns:
-            config_class: The loaded configuration data for the specified section.
-
-        Raises:
-            configparser.NoSectionError: If the specified section is not found in the configuration file.
+        Updates a configuration setting in the file
         """
-        try:
-            return config_class(
-                **{key: self.config.get(section_name, key) for key in self.config[section_name]}
-            )
-        except configparser.NoSectionError as e:
-            raise configparser.NoSectionError(f"Section '{section_name}' not found in configuration file") from e
 
-    def __load_udp(self):
-        return self.__get_section("UDP", UDPConfig)
-
-    def __load_tcp(self):
-        return self.__get_section("TCP", TCPConfig)
-
-    def __load_http(self):
-        return self.__get_section("HTTP", HTTPConfig)
-
-    def __load_other(self):
-        return self.__get_section("OTHER", OtherConfig)
+        self.config[section][key] = value
+        self.save_settings()

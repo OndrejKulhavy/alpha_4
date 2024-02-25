@@ -8,10 +8,8 @@ from src.udp.udp import UDP
 
 
 def main():
-    config = Config()
+    config = Config("config.ini")
     udp = UDP(config)
-
-    udp.run()
 
 
 if __name__ == '__main__':
