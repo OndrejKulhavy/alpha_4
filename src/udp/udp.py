@@ -4,10 +4,13 @@ import threading
 import time
 
 from src.configuration.config import Config
+from src.configuration.shared_collection import SharedPeerCollection
+from src.data_classes.peer import Peer
 
 
 class UDP:
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, peers: SharedPeerCollection):
+        self.peers = peers
         self.config = config
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
@@ -23,6 +26,9 @@ class UDP:
         print(f"Received response from {addr}: {response}")
         if response.get("command") == "hello":
             self.send_reply(sock)
+            peer = Peer(id=data.get("peer_id"), ip_address=addr[0])
+            self.peers.add(peer)
+            print(peer)
 
     def send_reply(self, sock):
         reply_message = json.dumps({"status": "ok", "peer_id": self.config.other_settings.peer_id}).encode("utf-8")
