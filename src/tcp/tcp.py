@@ -9,8 +9,6 @@ class TCP:
     def __init__(self, config: Config):
         self.connections = {}
         self.config = config
-        self.thread = threading.Thread(target=self.run)
-        self.thread.start()
 
     def establish_connection(self, peer: Peer):
         if peer in self.connections:
